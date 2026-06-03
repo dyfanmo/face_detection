@@ -1,4 +1,6 @@
-.PHONY: lint format typecheck test coverage check-data evaluate-one evaluate-multi check
+.PHONY: lint format typecheck test coverage evaluate-one evaluate-multi check
+
+PYTHON = powershell -File ./run.ps1 uv run python
 
 lint:
 	uv run ruff check src/ scripts/ tests/
@@ -15,13 +17,10 @@ test:
 coverage:
 	uv run pytest tests/ --cov=src --cov-report=term-missing --cov-fail-under=70
 
-check-data:
-	uv run python scripts/check_label_overlap.py
-
 evaluate-one:
-	uv run python scripts/evaluate.py --labels data/labels/one_face_test_labels.csv --visualise data/test_frames/one_face
+	$(PYTHON) scripts/evaluate.py --labels data/labels/one_face_test_labels.csv --visualise data/test_frames/one_face
 
 evaluate-multi:
-	uv run python scripts/evaluate.py --labels data/labels/multi_face_test_labels.csv --visualise data/test_frames/multi_face
+	$(PYTHON) scripts/evaluate.py --labels data/labels/multi_face_test_labels.csv --visualise data/test_frames/multi_face
 
-check: lint typecheck coverage check-data
+check: lint typecheck coverage

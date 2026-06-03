@@ -1030,10 +1030,6 @@ dev = [
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "ruff" },
-]
-
-[package.dev-dependencies]
-dev = [
     { name = "vulture" },
 ]
 
@@ -1048,11 +1044,9 @@ requires-dist = [
     { name = "ruff", marker = "extra == 'dev'" },
     { name = "scipy" },
     { name = "tf-keras" },
+    { name = "vulture", marker = "extra == 'dev'" },
 ]
 provides-extras = ["dev"]
-
-[package.metadata.requires-dev]
-dev = [{ name = "vulture", specifier = ">=2.16" }]
 
 [[package]]
 name = "numpy"

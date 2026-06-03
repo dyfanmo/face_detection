@@ -1,3 +1,4 @@
+import os
 from typing import Generator
 
 import cv2
@@ -6,7 +7,9 @@ import numpy as np
 
 class VideoReader:
     def __init__(self, path: str):
-        """Opens a video file and reads its properties."""
+        """Opens a video file and reads its properties. Raises FileNotFoundError if path does not exist."""
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"Video file not found: {path}")
         self._cap = cv2.VideoCapture(path)
         self.path = path
         self.fps = self._cap.get(cv2.CAP_PROP_FPS)

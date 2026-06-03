@@ -71,6 +71,10 @@ def build_result_row(
 
 def print_summary(evaluation_results_df: pd.DataFrame, output_path: str) -> None:
     """Prints evaluation summary — ground truth found, false positives, recall."""
+    if evaluation_results_df.empty:
+        print("\nNo frames were evaluated — check that the video path is correct.")
+        return
+
     correctly_identified = evaluation_results_df["found"].sum()
     total_expected = evaluation_results_df["true_character"].notna().sum()
     false_positive_count = evaluation_results_df["true_character"].isna().sum()
