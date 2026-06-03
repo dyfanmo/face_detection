@@ -1,6 +1,7 @@
 import argparse
 import logging
 import os
+from dataclasses import asdict
 
 import pandas as pd
 
@@ -53,22 +54,21 @@ def evaluate(
                 logger.warning(f"frame {frame_number} — {e}, skipping")
                 continue
 
-            predicted_characters, face_detections, faces_detected, faces_passed = identify_faces(
-                frame_image, ref_embeddings
-            )
+            frame_analysis = identify_faces(frame_image, ref_embeddings)
             expected_characters: list[str] = frame_info["characters"]
 
             logger.info(
-                f"frame {frame_number} — {faces_detected} detected, "
-                f"{faces_passed} passed filters (ground truth: {expected_characters})"
+                f"frame {frame_number} — {frame_analysis.faces_detected} detected, "
+                f"{frame_analysis.faces_passed} passed filters (ground truth: {expected_characters})"
             )
 
-            frame_results = evaluate_frame(frame_number, expected_characters, predicted_characters)
+            frame_results = evaluate_frame(frame_number, expected_characters, frame_analysis.predicted_characters)
             evaluation_results.extend(frame_results)
 
             if visualise_dir:
                 visualise_frame(
-                    frame_image, predicted_characters, frame_number, visualise_dir, ground_truth=expected_characters
+                    frame_image, frame_analysis.predicted_characters, frame_number, visualise_dir,
+                    ground_truth=expected_characters
                 )
 
             if debug:
@@ -77,14 +77,14 @@ def evaluate(
                 if has_miss or has_fp:
                     visualise_frame(
                         frame_image,
-                        predicted_characters,
+                        frame_analysis.predicted_characters,
                         frame_number,
                         DEBUG_DIR,
                         ground_truth=expected_characters,
-                        detected_faces=[face_bbox for _, face_bbox, _ in face_detections],
+                        detected_faces=[face_bbox for _, face_bbox, _ in frame_analysis.face_detections],
                     )
 
-    evaluation_results_df = pd.DataFrame(evaluation_results)
+    evaluation_results_df = pd.DataFrame([asdict(r) for r in evaluation_results])
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     evaluation_results_df.to_csv(output_path, index=False)
     print_summary(evaluation_results_df, output_path)

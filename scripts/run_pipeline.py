@@ -35,8 +35,8 @@ def run_pipeline(video_path: str, references_dir: str, output_path: str) -> None
 
         for frame_number, frame_image in video.frames():
             if frame_number % FRAME_SAMPLE_RATE == 0:
-                predicted_characters, _, _, _ = identify_faces(frame_image, ref_embeddings)
-                carried_predictions = predicted_characters
+                frame_analysis = identify_faces(frame_image, ref_embeddings)
+                carried_predictions = frame_analysis.predicted_characters
 
             for prediction in carried_predictions:
                 draw_label(frame_image, prediction.bbox, prediction.character)

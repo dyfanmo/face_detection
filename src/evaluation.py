@@ -2,19 +2,19 @@ import logging
 
 import pandas as pd
 
-from src.models import FacePrediction
+from src.models import EvaluationResult, FacePrediction
 
 logger = logging.getLogger(__name__)
 
 
-def is_missed_prediction(row: dict) -> bool:
+def is_missed_prediction(row: EvaluationResult) -> bool:
     """Returns True if the result row is a missed ground truth prediction."""
-    return bool(row["true_character"]) and not row["found"]
+    return bool(row.true_character) and not row.found
 
 
-def is_false_positive(row: dict) -> bool:
+def is_false_positive(row: EvaluationResult) -> bool:
     """Returns True if the result row is a false positive prediction."""
-    return row["true_character"] is None
+    return row.true_character is None
 
 
 def find_matching_prediction(
@@ -32,9 +32,9 @@ def evaluate_frame(
     frame_number: int,
     expected_characters: list[str],
     predicted_characters: list[FacePrediction],
-) -> list[dict]:
+) -> list[EvaluationResult]:
     """Compares predicted characters against expected characters for a single frame.
-    Returns a list of result rows — one per expected character plus any false positives."""
+    Returns a list of EvaluationResult — one per expected character plus any false positives."""
     frame_results = []
     found_character_names = {p.character for p in predicted_characters}
 
@@ -60,22 +60,21 @@ def build_result_row(
     expected_character: str | None,
     prediction: FacePrediction | None,
     is_match: bool,
-) -> dict:
-    """Builds a result row dict for the evaluation results CSV.
-    Used for both expected character rows and false positive rows."""
+) -> EvaluationResult:
+    """Builds an EvaluationResult for a single expected character or false positive."""
     bbox = prediction.bbox if prediction else None
-    return {
-        "frame_number": frame_number,
-        "true_character": expected_character,
-        "predicted_character": prediction.character if prediction else None,
-        "distance": prediction.distance if prediction else None,
-        "match": prediction.is_match if prediction else False,
-        "found": is_match,
-        "bbox_x": bbox.x if bbox else None,
-        "bbox_y": bbox.y if bbox else None,
-        "bbox_w": bbox.w if bbox else None,
-        "bbox_h": bbox.h if bbox else None,
-    }
+    return EvaluationResult(
+        frame_number=frame_number,
+        true_character=expected_character,
+        predicted_character=prediction.character if prediction else None,
+        distance=prediction.distance if prediction else None,
+        match=prediction.is_match if prediction else False,
+        found=is_match,
+        bbox_x=bbox.x if bbox else None,
+        bbox_y=bbox.y if bbox else None,
+        bbox_w=bbox.w if bbox else None,
+        bbox_h=bbox.h if bbox else None,
+    )
 
 
 def print_summary(evaluation_results_df: pd.DataFrame, output_path: str) -> None:
