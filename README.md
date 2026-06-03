@@ -144,11 +144,10 @@ make evaluate-multi
 ## Code Quality
 
 ```bash
-make lint        # ruff
-make typecheck   # mypy
-make test        # pytest
-make coverage    # pytest with coverage — fails below 70%
-make check       # lint + typecheck + coverage
+uv run ruff check src/ scripts/ tests/                                          # lint
+uv run mypy src/                                                                 # typecheck
+uv run pytest tests/                                                             # tests
+uv run pytest tests/ --cov=src --cov-report=term-missing --cov-fail-under=70    # coverage
 ```
 
 ---

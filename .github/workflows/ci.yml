@@ -21,10 +21,10 @@ jobs:
         run: uv sync --extra dev
 
       - name: Lint
-        run: make lint
+        run: uv run ruff check src/ scripts/ tests/
 
       - name: Typecheck
-        run: make typecheck
+        run: uv run mypy src/
 
       - name: Test with coverage
-        run: make coverage
+        run: uv run pytest tests/ --cov=src --cov-report=term-missing --cov-fail-under=70
