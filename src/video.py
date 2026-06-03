@@ -4,6 +4,8 @@ from typing import Generator
 import cv2
 import numpy as np
 
+from src.exceptions import FrameExtractionError
+
 
 class VideoReader:
     def __init__(self, path: str):
@@ -17,11 +19,14 @@ class VideoReader:
         self.width = int(self._cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         self.height = int(self._cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-    def extract_frame(self, frame_number: int) -> np.ndarray | None:
-        """Extracts and returns a single frame by frame number. Returns None if extraction fails."""
+    def extract_frame(self, frame_number: int) -> np.ndarray:
+        """Extracts and returns a single frame by frame number.
+        Raises FrameExtractionError if the frame cannot be read."""
         self._cap.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
         success, frame_image = self._cap.read()
-        return frame_image if success else None
+        if not success:
+            raise FrameExtractionError(f"Could not extract frame {frame_number}")
+        return frame_image
 
     def frames(self) -> Generator[tuple[int, np.ndarray], None, None]:
         """Generator that yields every frame in the video as a tuple of (frame_number, frame_image)."""

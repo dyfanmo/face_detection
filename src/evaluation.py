@@ -1,4 +1,10 @@
+import logging
+
 import pandas as pd
+
+from src.models import FacePrediction
+
+logger = logging.getLogger(__name__)
 
 
 def is_missed_prediction(row: dict) -> bool:
@@ -11,23 +17,26 @@ def is_false_positive(row: dict) -> bool:
     return row["true_character"] is None
 
 
-def find_matching_prediction(expected_character: str, predicted_characters: list) -> dict | None:
-    """Returns the prediction dict for the expected character if found, otherwise None."""
+def find_matching_prediction(
+    expected_character: str,
+    predicted_characters: list[FacePrediction],
+) -> FacePrediction | None:
+    """Returns the FacePrediction for the expected character if found, otherwise None."""
     for prediction in predicted_characters:
-        if prediction["character"] == expected_character:
+        if prediction.character == expected_character:
             return prediction
     return None
 
 
 def evaluate_frame(
     frame_number: int,
-    expected_characters: list,
-    predicted_characters: list,
-) -> list:
+    expected_characters: list[str],
+    predicted_characters: list[FacePrediction],
+) -> list[dict]:
     """Compares predicted characters against expected characters for a single frame.
     Returns a list of result rows — one per expected character plus any false positives."""
     frame_results = []
-    found_character_names = {r["character"] for r in predicted_characters}
+    found_character_names = {p.character for p in predicted_characters}
 
     for expected_character in expected_characters:
         matching_prediction = find_matching_prediction(expected_character, predicted_characters)
@@ -35,13 +44,13 @@ def evaluate_frame(
         frame_results.append(build_result_row(frame_number, expected_character, matching_prediction, is_match))
 
         status = "✓" if is_match else "✗"
-        distance_str = f"distance: {matching_prediction['distance']}" if matching_prediction else "no prediction"
-        print(f"  {status} {expected_character} — {distance_str}")
+        distance_str = f"distance: {matching_prediction.distance}" if matching_prediction else "no prediction"
+        logger.info(f"  {status} {expected_character} — {distance_str}")
 
     for prediction in predicted_characters:
-        if prediction["character"] not in expected_characters:
+        if prediction.character not in expected_characters:
             frame_results.append(build_result_row(frame_number, None, prediction, False))
-            print(f"  ✗ false positive — {prediction['character']} distance: {prediction['distance']}")
+            logger.info(f"  ✗ false positive — {prediction.character} distance: {prediction.distance}")
 
     return frame_results
 
@@ -49,38 +58,38 @@ def evaluate_frame(
 def build_result_row(
     frame_number: int,
     expected_character: str | None,
-    prediction: dict | None,
+    prediction: FacePrediction | None,
     is_match: bool,
 ) -> dict:
     """Builds a result row dict for the evaluation results CSV.
     Used for both expected character rows and false positive rows."""
-    bbox = prediction.get("bbox") if prediction else None
+    bbox = prediction.bbox if prediction else None
     return {
         "frame_number": frame_number,
         "true_character": expected_character,
-        "predicted_character": prediction["character"] if prediction else None,
-        "distance": prediction["distance"] if prediction else None,
-        "match": prediction["is_match"] if prediction else False,
+        "predicted_character": prediction.character if prediction else None,
+        "distance": prediction.distance if prediction else None,
+        "match": prediction.is_match if prediction else False,
         "found": is_match,
-        "bbox_x": bbox["x"] if bbox else None,
-        "bbox_y": bbox["y"] if bbox else None,
-        "bbox_w": bbox["w"] if bbox else None,
-        "bbox_h": bbox["h"] if bbox else None,
+        "bbox_x": bbox.x if bbox else None,
+        "bbox_y": bbox.y if bbox else None,
+        "bbox_w": bbox.w if bbox else None,
+        "bbox_h": bbox.h if bbox else None,
     }
 
 
 def print_summary(evaluation_results_df: pd.DataFrame, output_path: str) -> None:
-    """Prints evaluation summary — ground truth found, false positives, recall."""
+    """Logs evaluation summary — ground truth found, false positives, recall."""
     if evaluation_results_df.empty:
-        print("\nNo frames were evaluated — check that the video path is correct.")
+        logger.warning("No frames were evaluated — check that the video path is correct.")
         return
 
     correctly_identified = evaluation_results_df["found"].sum()
     total_expected = evaluation_results_df["true_character"].notna().sum()
     false_positive_count = evaluation_results_df["true_character"].isna().sum()
 
-    print(f"\nSaved {len(evaluation_results_df)} rows to {output_path}")
-    print(f"Ground truth found:    {correctly_identified} / {total_expected}")
-    print(f"False positives:       {false_positive_count}")
+    logger.info(f"Saved {len(evaluation_results_df)} rows to {output_path}")
+    logger.info(f"Ground truth found:    {correctly_identified} / {total_expected}")
+    logger.info(f"False positives:       {false_positive_count}")
     if total_expected > 0:
-        print(f"Recall:                {correctly_identified / total_expected * 100:.1f}%")
+        logger.info(f"Recall:                {correctly_identified / total_expected * 100:.1f}%")

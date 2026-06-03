@@ -1,18 +1,19 @@
 import argparse
+import logging
 import os
-import sys
 
 import pandas as pd
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-
-from src.config import REFERENCES_DIR, configure_environment
+from src.config import REFERENCES_DIR, configure_environment, setup_logging
 from src.evaluation import evaluate_frame, is_false_positive, is_missed_prediction, print_summary
+from src.exceptions import FrameExtractionError
 from src.labels import load_labels, remove_overlapping_frames
 from src.pipeline import identify_faces
 from src.recognise import build_reference_embeddings
 from src.video import VideoReader
 from src.visualisation import visualise_frame
+
+logger = logging.getLogger(__name__)
 
 VIDEO_PATH = "data/nimbus.mp4"
 REFERENCE_LABELS = "data/labels/reference_labels.csv"
@@ -41,22 +42,23 @@ def evaluate(
 
     labelled_frames = labels.groupby("frame_number").agg(characters=("character_name", list)).to_dict("index")
 
-    print(f"\nProcessing {len(labelled_frames)} unique frames\n")
+    logger.info(f"Processing {len(labelled_frames)} unique frames")
     evaluation_results = []
 
     with VideoReader(video_path) as video:
         for frame_number, frame_info in sorted(labelled_frames.items()):
-            frame_image = video.extract_frame(frame_number)
-            if frame_image is None:
-                print(f"SKIP  frame {frame_number} — could not extract")
+            try:
+                frame_image = video.extract_frame(frame_number)
+            except FrameExtractionError as e:
+                logger.warning(f"frame {frame_number} — {e}, skipping")
                 continue
 
             predicted_characters, face_detections, faces_detected, faces_passed = identify_faces(
                 frame_image, ref_embeddings
             )
-            expected_characters = frame_info["characters"]
+            expected_characters: list[str] = frame_info["characters"]
 
-            print(
+            logger.info(
                 f"frame {frame_number} — {faces_detected} detected, "
                 f"{faces_passed} passed filters (ground truth: {expected_characters})"
             )
@@ -90,6 +92,7 @@ def evaluate(
 
 def main() -> None:
     configure_environment()
+    setup_logging()
     parser = argparse.ArgumentParser(description="Evaluate face recognition performance against labelled ground truth")
     parser.add_argument("--video", default=VIDEO_PATH, help="Path to video file")
     parser.add_argument("--labels", required=True, help="Path to test labels CSV")

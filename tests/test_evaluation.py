@@ -1,9 +1,6 @@
-import os
-import sys
+import logging
 
 import pandas as pd
-
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 from src.evaluation import (
     build_result_row,
@@ -13,15 +10,15 @@ from src.evaluation import (
     is_missed_prediction,
     print_summary,
 )
+from src.models import FaceBBox, FacePrediction
 
 
-def make_prediction(character: str, distance: float = 0.1) -> dict:
-    return {
-        "character": character,
-        "distance": distance,
-        "is_match": True,
-        "bbox": {"x": 10, "y": 10, "w": 50, "h": 50},
-    }
+def make_bbox() -> FaceBBox:
+    return FaceBBox(x=10, y=10, w=50, h=50, confidence=0.95)
+
+
+def make_prediction(character: str, distance: float = 0.1) -> FacePrediction:
+    return FacePrediction(character=character, distance=distance, is_match=True, bbox=make_bbox())
 
 
 def test_is_missed_prediction_returns_true_when_not_found():
@@ -35,11 +32,11 @@ def test_is_false_positive_returns_true_when_no_true_character():
 
 
 def test_find_matching_prediction_returns_correct_prediction():
-    """Returns the prediction dict matching the expected character."""
+    """Returns the FacePrediction matching the expected character."""
     predictions = [make_prediction("Harry Potter"), make_prediction("Hermione Granger")]
     result = find_matching_prediction("Harry Potter", predictions)
     assert result is not None
-    assert result["character"] == "Harry Potter"
+    assert result.character == "Harry Potter"
 
 
 def test_find_matching_prediction_returns_none_when_not_found():
@@ -90,13 +87,14 @@ def test_evaluate_frame_false_positive():
     assert fp["predicted_character"] == "Ron Weasley"
 
 
-def test_print_summary_outputs_recall(capsys):
-    """Prints correct recall percentage."""
+def test_print_summary_logs_recall(caplog):
+    """Logs correct recall percentage."""
     df = pd.DataFrame(
         [
             {"true_character": "Harry Potter", "found": True},
             {"true_character": "Hermione Granger", "found": False},
         ]
     )
-    print_summary(df, "data/results/test.csv")
-    assert "50.0%" in capsys.readouterr().out
+    with caplog.at_level(logging.INFO):
+        print_summary(df, "data/results/test.csv")
+    assert "50.0%" in caplog.text

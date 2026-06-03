@@ -1,11 +1,11 @@
 import os
-import sys
 import tempfile
 
 import numpy as np
+import pytest
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-
+from src.exceptions import ImageLoadError
+from src.models import FaceBBox
 from src.visualisation import draw_label, load_image, save_image
 
 
@@ -13,8 +13,8 @@ def make_frame() -> np.ndarray:
     return np.zeros((480, 640, 3), dtype=np.uint8)
 
 
-def make_bbox() -> dict:
-    return {"x": 100, "y": 100, "w": 100, "h": 100}
+def make_bbox() -> FaceBBox:
+    return FaceBBox(x=100, y=100, w=100, h=100, confidence=0.95)
 
 
 def test_save_image_writes_file_to_disk():
@@ -25,9 +25,10 @@ def test_save_image_writes_file_to_disk():
         assert os.path.exists(path)
 
 
-def test_load_image_returns_none_for_missing_file():
-    """Returns None when the file does not exist."""
-    assert load_image("nonexistent.jpg") is None
+def test_load_image_raises_for_missing_file():
+    """Raises ImageLoadError when the file does not exist."""
+    with pytest.raises(ImageLoadError):
+        load_image("nonexistent.jpg")
 
 
 def test_load_image_returns_array_for_valid_file():

@@ -1,49 +1,35 @@
 import argparse
+import logging
 import os
-import sys
 from collections import defaultdict
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-
-from src.config import REFERENCES_DIR, configure_environment
-from src.faces import crop_face, detect_faces, get_largest_face
+from src.config import REFERENCES_DIR, configure_environment, setup_logging
+from src.exceptions import FrameExtractionError, NoFacesDetectedError
+from src.faces import extract_dominant_face_crop
 from src.labels import load_labels
 from src.video import VideoReader
 from src.visualisation import save_image
+
+logger = logging.getLogger(__name__)
 
 
 def extract_references(video_path: str, labels_path: str, output_dir: str) -> None:
     """Extracts tight face crops from labelled frames and saves as reference images."""
     labels = load_labels(labels_path)
-    print(f"Extracting references from {len(labels)} labels\n")
+    logger.info(f"Extracting references from {len(labels)} labels")
 
-    reference_counts: defaultdict = defaultdict(int)
+    reference_counts: defaultdict[str, int] = defaultdict(int)
 
     with VideoReader(video_path) as video:
         for _, row in labels.iterrows():
-            character = row["character_name"]
-            frame_number = row["frame_number"]
-            frame_image = video.extract_frame(frame_number)
+            character: str = row["character_name"]
+            frame_number: int = row["frame_number"]
 
-            if frame_image is None:
-                print(f"SKIP    {character} frame {frame_number} — could not extract frame")
-                continue
-
-            detected_faces = detect_faces(frame_image)
-
-            if not detected_faces:
-                print(f"SKIP    {character} frame {frame_number} — no face detected")
-                continue
-
-            largest_face = get_largest_face(detected_faces)
-
-            if largest_face is None:
-                print(f"SKIP    {character} frame {frame_number} — could not determine largest face")
-                continue
-
-            crop_image = crop_face(frame_image, largest_face)
-            if crop_image is None:
-                print(f"SKIP    {character} frame {frame_number} — could not crop face")
+            try:
+                frame_image = video.extract_frame(frame_number)
+                crop_image = extract_dominant_face_crop(frame_image)
+            except (FrameExtractionError, NoFacesDetectedError) as e:
+                logger.warning(f"{character} frame {frame_number} — {e}, skipping")
                 continue
 
             reference_counts[character] += 1
@@ -51,15 +37,16 @@ def extract_references(video_path: str, labels_path: str, output_dir: str) -> No
 
             output_path = os.path.join(output_dir, f"{character}_{character_image_number}.jpg")
             save_image(crop_image, output_path)
-            print(f"SAVED   {character}_{character_image_number} → {output_path} (frame {frame_number})")
+            logger.info(f"Saved {character}_{character_image_number} → {output_path} (frame {frame_number})")
 
-    print(f"\nDone — {sum(reference_counts.values())} reference images saved")
+    logger.info(f"Done — {sum(reference_counts.values())} reference images saved")
     for character, count in sorted(reference_counts.items()):
-        print(f"  {character}: {count} reference(s)")
+        logger.info(f"  {character}: {count} reference(s)")
 
 
 def main() -> None:
     configure_environment()
+    setup_logging()
     parser = argparse.ArgumentParser(description="Extract tight face crop reference images from labelled video frames")
     parser.add_argument("--video", default="data/nimbus.mp4", help="Path to video file")
     parser.add_argument("--labels", required=True, help="Path to reference labels CSV")

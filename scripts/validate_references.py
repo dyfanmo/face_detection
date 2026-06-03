@@ -1,13 +1,14 @@
 import argparse
+import logging
 import os
-import sys
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-
-from src.config import REFERENCES_DIR, configure_environment
-from src.faces import detect_faces, get_largest_face
+from src.config import REFERENCES_DIR, configure_environment, setup_logging
+from src.exceptions import ImageLoadError, NoFacesDetectedError
+from src.faces import extract_dominant_face_crop
 from src.recognise import parse_character_name
 from src.visualisation import load_image
+
+logger = logging.getLogger(__name__)
 
 
 def validate_references(references_dir: str) -> None:
@@ -15,44 +16,32 @@ def validate_references(references_dir: str) -> None:
     images = [f for f in os.listdir(references_dir) if f.endswith(".jpg")]
 
     if not images:
-        print(f"No reference images found in {references_dir}")
+        logger.warning(f"No reference images found in {references_dir}")
         return
 
-    print(f"Validating {len(images)} reference images\n")
+    logger.info(f"Validating {len(images)} reference images")
 
     all_valid = True
     for filename in sorted(images):
         character = parse_character_name(filename)
-        reference_image = load_image(os.path.join(references_dir, filename))
 
-        if reference_image is None:
-            print(f"FAIL  {character} — could not load image")
-            all_valid = False
-            continue
-
-        faces = detect_faces(reference_image)
-
-        if not faces:
-            print(f"FAIL  {character} — no face detected")
-            all_valid = False
-            continue
-
-        largest_face = get_largest_face(faces)
-
-        if largest_face:
-            size = f"{largest_face['w']}x{largest_face['h']}px"
-            conf = f"{largest_face['confidence']:.2f}"
-            print(f"PASS  {character} — detected face {size} (confidence {conf})")
-        else:
-            print(f"FAIL  {character} — could not determine largest face")
+        try:
+            reference_image = load_image(os.path.join(references_dir, filename))
+            extract_dominant_face_crop(reference_image)
+            logger.info(f"PASS  {character} — face detected successfully")
+        except (ImageLoadError, NoFacesDetectedError) as e:
+            logger.warning(f"FAIL  {character} — {e}")
             all_valid = False
 
-    print()
-    print("All references valid" if all_valid else "Some references failed — re-extract those characters")
+    if all_valid:
+        logger.info("All references valid")
+    else:
+        logger.warning("Some references failed — re-extract those characters")
 
 
 def main() -> None:
     configure_environment()
+    setup_logging()
     parser = argparse.ArgumentParser(description="Validate that DeepFace can detect a face in each reference image")
     parser.add_argument("--references", default=REFERENCES_DIR, help="Path to reference images directory")
     args = parser.parse_args()

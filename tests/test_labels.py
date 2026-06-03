@@ -1,10 +1,7 @@
 import os
-import sys
 import tempfile
 
 import pandas as pd
-
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 from src.labels import load_frame_numbers, load_labels, remove_overlapping_frames
 

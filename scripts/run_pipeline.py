@@ -1,16 +1,17 @@
 import argparse
+import logging
 import os
-import sys
 
 import cv2
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-
-from src.config import FRAME_SAMPLE_RATE, REFERENCES_DIR, configure_environment
+from src.config import FRAME_SAMPLE_RATE, REFERENCES_DIR, configure_environment, setup_logging
+from src.models import FacePrediction
 from src.pipeline import identify_faces
 from src.recognise import build_reference_embeddings
 from src.video import VideoReader
 from src.visualisation import draw_label
+
+logger = logging.getLogger(__name__)
 
 VIDEO_PATH = "data/nimbus.mp4"
 OUTPUT_PATH = "data/videos/nimbus_output.mp4"
@@ -18,9 +19,9 @@ OUTPUT_PATH = "data/videos/nimbus_output.mp4"
 
 def run_pipeline(video_path: str, references_dir: str, output_path: str) -> None:
     """Processes the full video — detects and recognises faces on sampled frames,
-    carries labels forward to non-sampled frames, writes annotated output video."""
+    carries predictions forward to non-sampled frames, writes annotated output video."""
     ref_embeddings = build_reference_embeddings(references_dir)
-    carried_predictions = []
+    carried_predictions: list[FacePrediction] = []
 
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
@@ -28,9 +29,9 @@ def run_pipeline(video_path: str, references_dir: str, output_path: str) -> None
         fourcc = cv2.VideoWriter_fourcc(*"mp4v")
         out = cv2.VideoWriter(output_path, fourcc, video.fps, (video.width, video.height))
 
-        print(f"Video: {video.width}x{video.height} @ {video.fps}fps — {video.frame_count} frames")
-        print(f"Sampling every {FRAME_SAMPLE_RATE} frames")
-        print(f"Output: {output_path}\n")
+        logger.info(f"Video: {video.width}x{video.height} @ {video.fps}fps — {video.frame_count} frames")
+        logger.info(f"Sampling every {FRAME_SAMPLE_RATE} frames")
+        logger.info(f"Output: {output_path}")
 
         for frame_number, frame_image in video.frames():
             if frame_number % FRAME_SAMPLE_RATE == 0:
@@ -38,16 +39,17 @@ def run_pipeline(video_path: str, references_dir: str, output_path: str) -> None
                 carried_predictions = predicted_characters
 
             for prediction in carried_predictions:
-                draw_label(frame_image, prediction["bbox"], prediction["character"])
+                draw_label(frame_image, prediction.bbox, prediction.character)
 
             out.write(frame_image)
 
         out.release()
-        print(f"\nDone — {video.frame_count} frames written to {output_path}")
+        logger.info(f"Done — {video.frame_count} frames written to {output_path}")
 
 
 def main() -> None:
     configure_environment()
+    setup_logging()
     parser = argparse.ArgumentParser(description="Run face detection and recognition pipeline on full video")
     parser.add_argument("--video", default=VIDEO_PATH, help="Path to input video")
     parser.add_argument("--references", default=REFERENCES_DIR, help="Path to reference images directory")

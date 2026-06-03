@@ -1,3 +1,4 @@
+import logging
 import math
 import os
 
@@ -7,6 +8,10 @@ from deepface import DeepFace
 from scipy.spatial.distance import cosine
 
 from src.config import DISTANCE_THRESHOLD, FACENET_INPUT_SIZE, RECOGNITION_MODEL
+from src.exceptions import FaceRecognitionError, ReferenceLoadError
+from src.models import FaceBBox, FacePrediction
+
+logger = logging.getLogger(__name__)
 
 
 def parse_character_name(filename: str) -> str:
@@ -27,12 +32,17 @@ def normalise_crop_size(crop: np.ndarray) -> np.ndarray:
     return crop
 
 
-def build_reference_embeddings(references_dir: str) -> dict:
+def build_reference_embeddings(references_dir: str) -> dict[str, list[list[float]]]:
     """Pre-computes Facenet512 embeddings for all reference images.
     Returns a dict mapping character name to a list of embeddings.
-    Call once at startup — avoids reloading on every recognition call."""
-    embeddings: dict = {}
+    Call once at startup — avoids reloading on every recognition call.
+    Raises ReferenceLoadError if no reference images are found."""
     images = [f for f in os.listdir(references_dir) if f.endswith(".jpg")]
+
+    if not images:
+        raise ReferenceLoadError(f"No reference images found in {references_dir}")
+
+    embeddings: dict[str, list[list[float]]] = {}
 
     for filename in sorted(images):
         image_path = os.path.join(references_dir, filename)
@@ -47,14 +57,16 @@ def build_reference_embeddings(references_dir: str) -> dict:
         if deepface_output:
             embeddings.setdefault(character, []).append(deepface_output[0]["embedding"])
 
-    print(f"Built embeddings for {len(embeddings)} characters from {len(images)} reference images")
+    logger.info(f"Built embeddings for {len(embeddings)} characters from {len(images)} reference images")
     return embeddings
 
 
-def recognise_face(face_crop: np.ndarray, ref_embeddings: dict) -> dict | None:
+def recognise_face(
+    face_crop: np.ndarray, ref_embeddings: dict[str, list[list[float]]], bbox: FaceBBox
+) -> FacePrediction:
     """Compares a face crop against pre-computed reference embeddings.
-    Returns the best matching character, distance, and is_match flag.
-    Returns None if the crop cannot be represented or no references exist.
+    Returns a FacePrediction with the best matching character, distance, and is_match flag.
+    Raises FaceRecognitionError if the crop cannot be represented.
 
     is_match=True means distance is below DISTANCE_THRESHOLD — confident identification.
     is_match=False means a best guess was found but confidence is too low.
@@ -68,13 +80,14 @@ def recognise_face(face_crop: np.ndarray, ref_embeddings: dict) -> dict | None:
     )
 
     if not deepface_output:
-        return None
+        raise FaceRecognitionError("DeepFace could not represent the face crop")
 
     crop_embedding = deepface_output[0]["embedding"]
 
     best_character = None
     best_distance = float("inf")
 
+    # find the reference embedding with the smallest cosine distance to the crop
     for character, reference_embeddings in ref_embeddings.items():
         for embedding in reference_embeddings:
             distance = cosine(crop_embedding, embedding)
@@ -85,21 +98,24 @@ def recognise_face(face_crop: np.ndarray, ref_embeddings: dict) -> dict | None:
                 best_character = character
 
     if best_character is None:
-        return None
+        raise FaceRecognitionError("No valid reference embeddings to compare against")
 
-    return {
-        "character": best_character,
-        "distance": round(float(best_distance), 4),
-        "is_match": best_distance < DISTANCE_THRESHOLD,
-    }
+    return FacePrediction(
+        character=best_character,
+        distance=round(float(best_distance), 4),
+        is_match=best_distance < DISTANCE_THRESHOLD,
+        bbox=bbox,
+    )
 
 
-def deduplicate_predictions(predictions: list) -> list:
+def deduplicate_predictions(predictions: list[FacePrediction]) -> list[FacePrediction]:
     """Keeps only the best (lowest distance) prediction per character.
     Prevents the same character appearing multiple times from different face crops."""
-    best_predictions: dict = {}
+    best_predictions: dict[str, FacePrediction] = {}
     for prediction in predictions:
-        character = prediction["character"]
-        if character not in best_predictions or prediction["distance"] < best_predictions[character]["distance"]:
-            best_predictions[character] = prediction
+        if (
+            prediction.character not in best_predictions
+            or prediction.distance < best_predictions[prediction.character].distance
+        ):
+            best_predictions[prediction.character] = prediction
     return list(best_predictions.values())
