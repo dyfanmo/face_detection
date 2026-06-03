@@ -1,0 +1,40 @@
+[project]
+name = "nimbus"
+version = "0.1.0"
+description = "Face detection and recognition pipeline for video analysis"
+requires-python = ">=3.11"
+dependencies = [
+    "opencv-contrib-python",
+    "pandas",
+    "deepface",
+    "tf-keras",
+    "scipy",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "ruff",
+    "mypy",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+explicit_package_bases = true
+
+[dependency-groups]
+dev = [
+    "vulture>=2.16",
+]

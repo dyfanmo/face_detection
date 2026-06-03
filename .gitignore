@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+
+# Virtual environment
+.venv/
+
+# Tool caches
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# DeepFace model cache
+.deepface/
+
+# uv
+.uv/
+
+# Data — large files and generated outputs
+data/nimbus.mp4
+data/videos/
+data/results/
+data/test_frames/
+data/debug_frames/
+data/debug_crops/
+
+# OS
+.DS_Store
+Thumbs.db
