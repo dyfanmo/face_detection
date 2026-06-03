@@ -31,7 +31,11 @@ def detect_faces(frame: np.ndarray) -> list:
 
 def filter_faces(faces: list) -> list:
     """Filters faces by minimum confidence and minimum size. Returns only faces that pass both checks."""
-    return [f for f in faces if f["confidence"] >= MIN_DETECTION_CONFIDENCE and is_face_large_enough(f)]
+    return [
+        f for f in faces
+        if f["confidence"] >= MIN_DETECTION_CONFIDENCE
+        and is_face_large_enough(f)
+    ]
 
 
 def crop_face(frame: np.ndarray, bbox: dict, padding: int = PADDING) -> np.ndarray | None:

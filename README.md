@@ -132,13 +132,6 @@ uv run python scripts/evaluate.py \
 | `--visualise DIR` | Save annotated frames to directory — false positives drawn in red |
 | `--debug` | Save only failed frames to `data/debug_frames/` with Unknown boxes for unrecognised faces |
 
-Or via Makefile (assumes video is at `data/nimbus.mp4`):
-
-```bash
-make evaluate-one
-make evaluate-multi
-```
-
 ---
 
 ## Code Quality
