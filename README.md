@@ -35,6 +35,12 @@ data/
     multi_face_test_labels.csv  — multi face evaluation labels
 ```
 
+## Labelling Tool
+
+Ground truth labels were generated using [video_annotator](https://github.com/dyfanmo/video_annotator) — a PyQt5 frame labelling tool built specifically for this project. It exports CSV files with exact frame numbers, character names, and optional notes.
+
+The label CSVs in `data/labels/` were produced by loading `nimbus.mp4` into the tool and using the `F` key to capture frames at precise moments.
+
 ## Setup
 
 ### 1. Install uv
