@@ -13,11 +13,13 @@ A face detection and recognition pipeline for identifying characters in video fo
 
 ```
 src/
-  config.py          — constants and environment setup
-  video.py           — video I/O
-  faces.py           — face detection
-  recognise.py       — face recognition and embeddings
-  pipeline.py        — full identification pipeline
+  config.py          — constants, logging setup, environment configuration
+  exceptions.py      — custom exceptions for the pipeline
+  models.py          — dataclasses: FaceBBox, FacePrediction, FrameAnalysis, EvaluationResult
+  video.py           — video I/O and frame extraction
+  faces.py           — face detection, filtering, cropping
+  recognise.py       — face recognition, embeddings, cosine similarity
+  pipeline.py        — full identify_faces pipeline
   visualisation.py   — drawing, annotating, saving frames
   labels.py          — loading and cleaning label CSVs
   evaluation.py      — evaluation logic and reporting
@@ -27,6 +29,16 @@ scripts/
   validate_references.py  — validate reference images are usable
   evaluate.py             — evaluate recognition against labelled frames
   run_pipeline.py         — run recognition on full video
+
+tests/
+  test_config.py
+  test_evaluation.py
+  test_faces.py
+  test_labels.py
+  test_pipeline.py
+  test_recognise.py
+  test_video.py
+  test_visualisation.py
 
 data/
   labels/
