@@ -46,7 +46,10 @@ def test_is_face_large_enough_returns_true():
 
 def test_is_face_large_enough_returns_false_when_too_small():
     """Returns False when face is below minimum size requirement."""
-    assert is_face_large_enough({"x": 0, "y": 0, "w": MIN_FACE_SIZE - 1, "h": MIN_FACE_SIZE - 1, "confidence": 0.9}) is False
+    assert (
+        is_face_large_enough({"x": 0, "y": 0, "w": MIN_FACE_SIZE - 1, "h": MIN_FACE_SIZE - 1, "confidence": 0.9})
+        is False
+    )
 
 
 def test_filter_faces_removes_low_confidence():

@@ -82,9 +82,7 @@ def visualise_frame(
     required to draw Unknown boxes for faces that were not confidently recognised.
     """
     confident_positions = {
-        (prediction["bbox"]["x"], prediction["bbox"]["y"])
-        for prediction in frame_predictions
-        if prediction.get("bbox")
+        (prediction["bbox"]["x"], prediction["bbox"]["y"]) for prediction in frame_predictions if prediction.get("bbox")
     }
 
     if detected_faces:

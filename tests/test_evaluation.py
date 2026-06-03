@@ -92,9 +92,11 @@ def test_evaluate_frame_false_positive():
 
 def test_print_summary_outputs_recall(capsys):
     """Prints correct recall percentage."""
-    df = pd.DataFrame([
-        {"true_character": "Harry Potter", "found": True},
-        {"true_character": "Hermione Granger", "found": False},
-    ])
+    df = pd.DataFrame(
+        [
+            {"true_character": "Harry Potter", "found": True},
+            {"true_character": "Hermione Granger", "found": False},
+        ]
+    )
     print_summary(df, "data/results/test.csv")
     assert "50.0%" in capsys.readouterr().out

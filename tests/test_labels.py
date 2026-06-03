@@ -35,10 +35,12 @@ def test_remove_overlapping_frames_removes_shared_frames():
         ref_f.write("frame_number,character_name\n100,Harry Potter\n")
         ref_path = ref_f.name
 
-    labels = pd.DataFrame([
-        {"frame_number": 100, "character_name": "Harry Potter"},
-        {"frame_number": 200, "character_name": "Hermione Granger"},
-    ])
+    labels = pd.DataFrame(
+        [
+            {"frame_number": 100, "character_name": "Harry Potter"},
+            {"frame_number": 200, "character_name": "Hermione Granger"},
+        ]
+    )
     result = remove_overlapping_frames(ref_path, labels)
     assert len(result) == 1
     assert result.iloc[0]["frame_number"] == 200
@@ -51,10 +53,12 @@ def test_remove_overlapping_frames_returns_unchanged_when_no_overlap():
         ref_f.write("frame_number,character_name\n999,Harry Potter\n")
         ref_path = ref_f.name
 
-    labels = pd.DataFrame([
-        {"frame_number": 100, "character_name": "Harry Potter"},
-        {"frame_number": 200, "character_name": "Hermione Granger"},
-    ])
+    labels = pd.DataFrame(
+        [
+            {"frame_number": 100, "character_name": "Harry Potter"},
+            {"frame_number": 200, "character_name": "Hermione Granger"},
+        ]
+    )
     result = remove_overlapping_frames(ref_path, labels)
     assert len(result) == 2
     os.unlink(ref_path)
