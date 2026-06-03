@@ -16,6 +16,7 @@ __pycache__/
 
 # DeepFace model cache
 .deepface/
+*.pkl
 
 # uv
 .uv/
@@ -27,6 +28,7 @@ data/results/
 data/test_frames/
 data/debug_frames/
 data/debug_crops/
+data/reference_frames/
 
 # OS
 .DS_Store
