@@ -1,6 +1,5 @@
 import pytest
 
-from src.exceptions import FrameExtractionError
 from src.video import VideoReader
 
 

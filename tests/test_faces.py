@@ -1,6 +1,5 @@
-import pytest
-
 import numpy as np
+import pytest
 
 from src.config import MIN_FACE_SIZE
 from src.exceptions import CropFailedError

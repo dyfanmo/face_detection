@@ -30,8 +30,8 @@ class FacePrediction:
 class FrameAnalysis:
     """Results of running the full identification pipeline on a single frame."""
 
-    predicted_characters: list
-    face_detections: list
+    predicted_characters: list[FacePrediction]
+    face_detections: list[tuple[np.ndarray, FaceBBox, FacePrediction | None]]
     faces_detected: int
     faces_passed: int
 
