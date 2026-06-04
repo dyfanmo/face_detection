@@ -17,6 +17,7 @@ def setup_logging(level: int = logging.INFO) -> None:
     )
 
 
+# Model configuration
 DETECTOR = "retinaface"
 RECOGNITION_MODEL = "Facenet512"
 DISTANCE_THRESHOLD = 0.35
@@ -25,4 +26,11 @@ MIN_FACE_SIZE = 80
 FACENET_INPUT_SIZE = 160
 PADDING = 20
 FRAME_SAMPLE_RATE = 5
+
+# Project paths
+VIDEO_PATH = "data/videos/nimbus.mp4"
 REFERENCES_DIR = "data/reference_frames"
+REFERENCE_LABELS = "data/labels/reference_labels.csv"
+EVALUATION_OUTPUT_DIR = "data/results"
+PIPELINE_OUTPUT_PATH = "data/videos/nimbus_output.mp4"
+DEBUG_DIR = "data/debug_frames"

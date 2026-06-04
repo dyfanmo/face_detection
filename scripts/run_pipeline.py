@@ -3,8 +3,16 @@ import logging
 import os
 
 import cv2
+from tqdm import tqdm
 
-from src.config import FRAME_SAMPLE_RATE, REFERENCES_DIR, configure_environment, setup_logging
+from src.config import (
+    FRAME_SAMPLE_RATE,
+    PIPELINE_OUTPUT_PATH,
+    REFERENCES_DIR,
+    VIDEO_PATH,
+    configure_environment,
+    setup_logging,
+)
 from src.models import FacePrediction
 from src.pipeline import identify_faces
 from src.recognise import build_reference_embeddings
@@ -12,9 +20,6 @@ from src.video import VideoReader
 from src.visualisation import draw_label
 
 logger = logging.getLogger(__name__)
-
-VIDEO_PATH = "data/nimbus.mp4"
-OUTPUT_PATH = "data/videos/nimbus_output.mp4"
 
 
 def run_pipeline(video_path: str, references_dir: str, output_path: str) -> None:
@@ -33,7 +38,7 @@ def run_pipeline(video_path: str, references_dir: str, output_path: str) -> None
         logger.info(f"Sampling every {FRAME_SAMPLE_RATE} frames")
         logger.info(f"Output: {output_path}")
 
-        for frame_number, frame_image in video.frames():
+        for frame_number, frame_image in tqdm(video.frames(), total=video.frame_count, desc="Processing", unit="frame"):
             if frame_number % FRAME_SAMPLE_RATE == 0:
                 frame_analysis = identify_faces(frame_image, ref_embeddings)
                 carried_predictions = frame_analysis.predicted_characters
@@ -53,7 +58,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Run face detection and recognition pipeline on full video")
     parser.add_argument("--video", default=VIDEO_PATH, help="Path to input video")
     parser.add_argument("--references", default=REFERENCES_DIR, help="Path to reference images directory")
-    parser.add_argument("--output", default=OUTPUT_PATH, help="Path to save output video")
+    parser.add_argument("--output", default=PIPELINE_OUTPUT_PATH, help="Path to save output video")
     args = parser.parse_args()
 
     run_pipeline(args.video, args.references, args.output)

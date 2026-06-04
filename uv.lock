@@ -1021,7 +1021,9 @@ dependencies = [
     { name = "opencv-contrib-python" },
     { name = "pandas" },
     { name = "scipy" },
+    { name = "setuptools" },
     { name = "tf-keras" },
+    { name = "tqdm" },
 ]
 
 [package.optional-dependencies]
@@ -1043,7 +1045,9 @@ requires-dist = [
     { name = "pytest-cov", marker = "extra == 'dev'" },
     { name = "ruff", marker = "extra == 'dev'" },
     { name = "scipy" },
+    { name = "setuptools" },
     { name = "tf-keras" },
+    { name = "tqdm" },
     { name = "vulture", marker = "extra == 'dev'" },
 ]
 provides-extras = ["dev"]

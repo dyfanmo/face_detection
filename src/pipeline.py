@@ -32,9 +32,7 @@ def identify_faces(
             face_detections.append((crop, face_bbox, None))
 
     confident_predictions = [
-        prediction
-        for _, _, prediction in face_detections
-        if prediction is not None and prediction.is_match
+        prediction for _, _, prediction in face_detections if prediction is not None and prediction.is_match
     ]
 
     return FrameAnalysis(

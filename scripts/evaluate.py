@@ -5,7 +5,15 @@ from dataclasses import asdict
 
 import pandas as pd
 
-from src.config import REFERENCES_DIR, configure_environment, setup_logging
+from src.config import (
+    DEBUG_DIR,
+    EVALUATION_OUTPUT_DIR,
+    REFERENCE_LABELS,
+    REFERENCES_DIR,
+    VIDEO_PATH,
+    configure_environment,
+    setup_logging,
+)
 from src.evaluation import evaluate_frame, is_false_positive, is_missed_prediction, print_summary
 from src.exceptions import FrameExtractionError
 from src.labels import load_labels, remove_overlapping_frames
@@ -15,11 +23,6 @@ from src.video import VideoReader
 from src.visualisation import visualise_frame
 
 logger = logging.getLogger(__name__)
-
-VIDEO_PATH = "data/nimbus.mp4"
-REFERENCE_LABELS = "data/labels/reference_labels.csv"
-OUTPUT_PATH = "data/results/evaluation_results.csv"
-DEBUG_DIR = "data/debug_frames"
 
 
 def evaluate(
@@ -34,8 +37,7 @@ def evaluate(
     Automatically removes any test frames that overlap with reference labels.
 
     --visualise  saves all evaluated frames with bounding boxes — false positives in red.
-    --debug      saves only failed frames to data/debug_frames/ with Unknown boxes
-                 drawn for every detected face that was not confidently recognised.
+    --debug      saves only failed frames to data/debug_frames/
     """
     labels = load_labels(labels_path)
     labels = remove_overlapping_frames(REFERENCE_LABELS, labels)
@@ -67,21 +69,25 @@ def evaluate(
 
             if visualise_dir:
                 visualise_frame(
-                    frame_image, frame_analysis.predicted_characters, frame_number, visualise_dir,
-                    ground_truth=expected_characters
+                    frame_image,
+                    frame_analysis.predicted_characters,
+                    frame_number,
+                    visualise_dir,
+                    ground_truth=expected_characters,
                 )
 
             if debug:
                 has_miss = any(is_missed_prediction(r) for r in frame_results)
                 has_fp = any(is_false_positive(r) for r in frame_results)
                 if has_miss or has_fp:
+                    detected_face_bboxes = [face_bbox for _, face_bbox, _ in frame_analysis.face_detections]
                     visualise_frame(
                         frame_image,
                         frame_analysis.predicted_characters,
                         frame_number,
                         DEBUG_DIR,
                         ground_truth=expected_characters,
-                        detected_faces=[face_bbox for _, face_bbox, _ in frame_analysis.face_detections],
+                        detected_faces=detected_face_bboxes,
                     )
 
     evaluation_results_df = pd.DataFrame([asdict(r) for r in evaluation_results])
@@ -97,14 +103,16 @@ def main() -> None:
     parser.add_argument("--video", default=VIDEO_PATH, help="Path to video file")
     parser.add_argument("--labels", required=True, help="Path to test labels CSV")
     parser.add_argument("--references", default=REFERENCES_DIR, help="Path to reference images directory")
-    parser.add_argument("--output", default=OUTPUT_PATH, help="Path to save evaluation results CSV")
     parser.add_argument("--visualise", metavar="DIR", default=None, help="Save annotated frames to this directory")
     parser.add_argument(
         "--debug", action="store_true", help="Save failed frames with Unknown boxes to data/debug_frames/"
     )
     args = parser.parse_args()
 
-    evaluate(args.video, args.labels, args.references, args.output, visualise_dir=args.visualise, debug=args.debug)
+    labels_stem = os.path.splitext(os.path.basename(args.labels))[0]
+    output_path = args.output or os.path.join(EVALUATION_OUTPUT_DIR, f"{labels_stem}_results.csv")
+
+    evaluate(args.video, args.labels, args.references, output_path, visualise_dir=args.visualise, debug=args.debug)
 
 
 if __name__ == "__main__":

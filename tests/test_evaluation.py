@@ -29,7 +29,10 @@ def make_result(true_character: str | None = "Harry Potter", found: bool = True)
         distance=0.1 if found else None,
         match=found,
         found=found,
-        bbox_x=10, bbox_y=10, bbox_w=50, bbox_h=50,
+        bbox_x=10,
+        bbox_y=10,
+        bbox_w=50,
+        bbox_h=50,
     )
 
 
@@ -101,10 +104,12 @@ def test_evaluate_frame_false_positive():
 
 def test_print_summary_logs_recall(caplog):
     """Logs correct recall percentage."""
-    df = pd.DataFrame([
-        {"true_character": "Harry Potter", "found": True},
-        {"true_character": "Hermione Granger", "found": False},
-    ])
+    df = pd.DataFrame(
+        [
+            {"true_character": "Harry Potter", "found": True},
+            {"true_character": "Hermione Granger", "found": False},
+        ]
+    )
     with caplog.at_level(logging.INFO):
         print_summary(df, "data/results/test.csv")
     assert "50.0%" in caplog.text

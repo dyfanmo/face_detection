@@ -9,6 +9,8 @@ dependencies = [
     "deepface",
     "tf-keras",
     "scipy",
+    "tqdm",
+    "setuptools",
 ]
 
 [tool.setuptools.packages.find]

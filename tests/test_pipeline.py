@@ -54,9 +54,7 @@ def test_identify_faces_excludes_unconfident_predictions(mock_detect, mock_filte
     mock_detect.return_value = [face_bbox]
     mock_filter.return_value = [face_bbox]
     mock_crop.return_value = crop
-    mock_recognise.return_value = FacePrediction(
-        character="Harry Potter", distance=0.5, is_match=False, bbox=face_bbox
-    )
+    mock_recognise.return_value = FacePrediction(character="Harry Potter", distance=0.5, is_match=False, bbox=face_bbox)
 
     result = identify_faces(make_frame(), {})
     assert result.predicted_characters == []

@@ -72,26 +72,20 @@ cd face_detection
 
 ```bash
 uv sync --extra dev
+uv pip install -e .
 ```
 
-This installs all dependencies including dev tools (pytest, ruff, mypy, vulture). uv will handle the correct Python version automatically.
+This installs all dependencies including dev tools (pytest, ruff, mypy, vulture) and registers the `src` package so imports work correctly.
 
-### 4. Obtain the video file
-
-The source video `nimbus.mp4` is not included in the repository. Place it anywhere accessible on your machine — the path is passed as an argument to each script.
-
-### 5. Extract reference frames
+### 4. Extract reference frames
 
 Generate face crop reference images for each character:
 
 ```bash
-uv run python scripts/extract_references.py \
-  --video path/to/nimbus.mp4 \
-  --labels data/labels/reference_labels.csv \
-  --output data/reference_frames
+uv run python scripts/extract_references.py
 ```
 
-### 6. Validate references
+### 5. Validate references
 
 Confirm DeepFace can detect a face in each reference image:
 
@@ -103,15 +97,11 @@ uv run python scripts/validate_references.py
 
 ## Running the Pipeline
 
-Runs face recognition across the full video and produces an annotated output video with bounding boxes drawn around recognised characters:
+Runs face recognition across the full video and produces an annotated output video:
 
 ```bash
-uv run python scripts/run_pipeline.py \
-  --video path/to/nimbus.mp4 \
-  --output data/videos/output.mp4
+uv run python scripts/run_pipeline.py
 ```
-
-The pipeline samples every 5 frames for recognition and carries predictions forward to non-sampled frames to keep boxes stable.
 
 ---
 
@@ -122,19 +112,13 @@ Evaluates recognition performance against manually labelled ground truth frames.
 **Single face evaluation:**
 
 ```bash
-uv run python scripts/evaluate.py \
-  --video path/to/nimbus.mp4 \
-  --labels data/labels/one_face_test_labels.csv \
-  --visualise data/test_frames/one_face
+uv run python scripts/evaluate.py --labels data/labels/one_face_test_labels.csv
 ```
 
 **Multi face evaluation:**
 
 ```bash
-uv run python scripts/evaluate.py \
-  --video path/to/nimbus.mp4 \
-  --labels data/labels/multi_face_test_labels.csv \
-  --visualise data/test_frames/multi_face
+uv run python scripts/evaluate.py --labels data/labels/multi_face_test_labels.csv
 ```
 
 **Optional flags:**
@@ -143,6 +127,7 @@ uv run python scripts/evaluate.py \
 |---|---|
 | `--visualise DIR` | Save annotated frames to directory — false positives drawn in red |
 | `--debug` | Save only failed frames to `data/debug_frames/` with Unknown boxes for unrecognised faces |
+| `--video PATH` | Override default video path (default: `data/videos/nimbus.mp4`) |
 
 ---
 

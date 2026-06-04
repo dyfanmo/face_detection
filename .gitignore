@@ -23,8 +23,7 @@ __pycache__/
 .uv/
 
 # Data — large files and generated outputs
-data/nimbus.mp4
-data/videos/
+data/videos/nimbus_output.mp4
 data/results/
 data/test_frames/
 data/debug_frames/

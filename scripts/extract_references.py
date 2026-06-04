@@ -3,7 +3,7 @@ import logging
 import os
 from collections import defaultdict
 
-from src.config import REFERENCES_DIR, configure_environment, setup_logging
+from src.config import REFERENCE_LABELS, REFERENCES_DIR, VIDEO_PATH, configure_environment, setup_logging
 from src.exceptions import FrameExtractionError, NoFacesDetectedError
 from src.faces import extract_dominant_face_crop
 from src.labels import load_labels
@@ -48,8 +48,8 @@ def main() -> None:
     configure_environment()
     setup_logging()
     parser = argparse.ArgumentParser(description="Extract tight face crop reference images from labelled video frames")
-    parser.add_argument("--video", default="data/nimbus.mp4", help="Path to video file")
-    parser.add_argument("--labels", required=True, help="Path to reference labels CSV")
+    parser.add_argument("--video", default=VIDEO_PATH, help="Path to video file")
+    parser.add_argument("--labels", default=REFERENCE_LABELS, help="Path to reference labels CSV")
     parser.add_argument("--output", default=REFERENCES_DIR, help="Output directory for reference images")
     args = parser.parse_args()
 

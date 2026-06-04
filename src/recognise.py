@@ -87,7 +87,6 @@ def recognise_face(
     best_character = None
     best_distance = float("inf")
 
-    # find the reference embedding with the smallest cosine distance to the crop
     for character, reference_embeddings in ref_embeddings.items():
         for embedding in reference_embeddings:
             distance = cosine(crop_embedding, embedding)
