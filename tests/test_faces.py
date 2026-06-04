@@ -1,10 +1,10 @@
 import numpy as np
 import pytest
 
-from src.config import MIN_FACE_SIZE
+from src.config import FACENET_INPUT_SIZE, MIN_FACE_SIZE
 from src.data_models import FaceBBox
 from src.exceptions import CropFailedError
-from src.faces import crop_face, filter_faces, get_largest_face, is_face_large_enough
+from src.faces import crop_face, filter_faces, get_largest_face, is_face_large_enough, normalise_crop_size
 
 
 def make_frame() -> np.ndarray:
@@ -52,3 +52,18 @@ def test_filter_faces_removes_low_confidence():
     """Removes faces below the minimum confidence threshold."""
     faces = [make_bbox(confidence=0.95), make_bbox(confidence=0.5)]
     assert len(filter_faces(faces)) == 1
+
+
+def test_normalise_crop_size_upscales_small_image():
+    """Resizes a crop smaller than FACENET_INPUT_SIZE to at least the minimum size."""
+    small_crop = np.zeros((50, 50, 3), dtype=np.uint8)
+    result = normalise_crop_size(small_crop)
+    assert result.shape[0] >= FACENET_INPUT_SIZE
+    assert result.shape[1] >= FACENET_INPUT_SIZE
+
+
+def test_normalise_crop_size_does_not_change_large_image():
+    """Does not resize a crop already larger than FACENET_INPUT_SIZE."""
+    large_crop = np.zeros((200, 200, 3), dtype=np.uint8)
+    result = normalise_crop_size(large_crop)
+    assert result.shape == large_crop.shape

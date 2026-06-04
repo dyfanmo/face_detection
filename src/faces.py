@@ -1,9 +1,10 @@
 import logging
 
+import cv2
 import numpy as np
 from deepface import DeepFace
 
-from src.config import DETECTOR, MIN_DETECTION_CONFIDENCE, MIN_FACE_SIZE, PADDING
+from src.config import DETECTOR, FACENET_INPUT_SIZE, MIN_DETECTION_CONFIDENCE, MIN_FACE_SIZE, PADDING
 from src.data_models import FaceBBox
 from src.exceptions import CropFailedError, NoFacesDetectedError
 
@@ -37,7 +38,11 @@ def detect_faces(frame_image: np.ndarray) -> list[FaceBBox]:
 
 def filter_faces(faces: list[FaceBBox]) -> list[FaceBBox]:
     """Filters faces by minimum confidence and minimum size. Returns only faces that pass both checks."""
-    return [f for f in faces if f.confidence >= MIN_DETECTION_CONFIDENCE and is_face_large_enough(f)]
+    return [
+        f for f in faces
+        if f.confidence >= MIN_DETECTION_CONFIDENCE
+        and is_face_large_enough(f)
+    ]
 
 
 def crop_face(frame_image: np.ndarray, bbox: FaceBBox, padding: int = PADDING) -> np.ndarray:
@@ -53,6 +58,17 @@ def crop_face(frame_image: np.ndarray, bbox: FaceBBox, padding: int = PADDING) -
     crop = frame_image[y:crop_y_end, x:crop_x_end]
     if crop.size == 0:
         raise CropFailedError(f"Crop at ({bbox.x}, {bbox.y}) produced an empty array")
+    return crop
+
+
+def normalise_crop_size(crop: np.ndarray) -> np.ndarray:
+    """Resizes a face crop to meet the minimum input size required by Facenet512."""
+    h, w = crop.shape[:2]
+    if h < FACENET_INPUT_SIZE or w < FACENET_INPUT_SIZE:
+        scale = FACENET_INPUT_SIZE / min(w, h)
+        new_width = int(w * scale)
+        new_height = int(h * scale)
+        crop = cv2.resize(crop, (new_width, new_height), interpolation=cv2.INTER_CUBIC)
     return crop
 
 

@@ -3,7 +3,17 @@ import tempfile
 
 import pandas as pd
 
-from src.labels import load_frame_numbers, load_labels, remove_overlapping_frames
+from src.labels import load_frame_numbers, load_labels, parse_character_name, remove_overlapping_frames
+
+
+def test_parse_character_name_strips_index():
+    """Strips trailing index suffix from a reference filename."""
+    assert parse_character_name("Harry Potter_9.jpg") == "Harry Potter"
+
+
+def test_parse_character_name_handles_prof():
+    """Handles character names with dots and multiple words."""
+    assert parse_character_name("Prof. Severus Snape_1.jpg") == "Prof. Severus Snape"
 
 
 def test_load_labels_normalises_frame_number_to_int():

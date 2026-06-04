@@ -2,29 +2,19 @@ import logging
 import math
 import os
 
-import cv2
 import numpy as np
 from deepface import DeepFace
 from scipy.spatial.distance import cosine
 
-from src.config import DISTANCE_THRESHOLD, FACENET_INPUT_SIZE, RECOGNITION_MODEL
+from src.config import DISTANCE_THRESHOLD, RECOGNITION_MODEL
 from src.data_models import FaceBBox, FacePrediction
 from src.exceptions import FaceRecognitionError, ReferenceLoadError
+from src.faces import normalise_crop_size
 from src.labels import parse_character_name
 
 logger = logging.getLogger(__name__)
 
 
-
-def normalise_crop_size(crop: np.ndarray) -> np.ndarray:
-    """Resizes a face crop to meet the minimum input size required by Facenet512."""
-    h, w = crop.shape[:2]
-    if h < FACENET_INPUT_SIZE or w < FACENET_INPUT_SIZE:
-        scale = FACENET_INPUT_SIZE / min(w, h)
-        new_width = int(w * scale)
-        new_height = int(h * scale)
-        crop = cv2.resize(crop, (new_width, new_height), interpolation=cv2.INTER_CUBIC)
-    return crop
 
 
 def build_reference_embeddings(references_dir: str) -> dict[str, list[list[float]]]:

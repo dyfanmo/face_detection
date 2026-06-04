@@ -1,11 +1,10 @@
 from unittest.mock import patch
 
 import numpy as np
+import pytest
 
-from src.config import FACENET_INPUT_SIZE
 from src.data_models import FaceBBox, FacePrediction
-from src.labels import parse_character_name
-from src.recognise import deduplicate_predictions, normalise_crop_size, recognise_face
+from src.recognise import deduplicate_predictions, recognise_face
 
 
 def make_crop() -> np.ndarray:
@@ -20,31 +19,6 @@ def make_embedding() -> list[float]:
     """Returns a valid non-zero embedding vector."""
     rng = np.random.default_rng(42)
     return rng.random(512).tolist()
-
-
-def test_parse_character_name_strips_index():
-    """Strips trailing index suffix from a reference filename."""
-    assert parse_character_name("Harry Potter_9.jpg") == "Harry Potter"
-
-
-def test_parse_character_name_handles_prof():
-    """Handles character names with dots and multiple words."""
-    assert parse_character_name("Prof. Severus Snape_1.jpg") == "Prof. Severus Snape"
-
-
-def test_normalise_crop_size_upscales_small_image():
-    """Resizes a crop smaller than FACENET_INPUT_SIZE to at least the minimum size."""
-    small_crop = np.zeros((50, 50, 3), dtype=np.uint8)
-    result = normalise_crop_size(small_crop)
-    assert result.shape[0] >= FACENET_INPUT_SIZE
-    assert result.shape[1] >= FACENET_INPUT_SIZE
-
-
-def test_normalise_crop_size_does_not_change_large_image():
-    """Does not resize a crop already larger than FACENET_INPUT_SIZE."""
-    large_crop = np.zeros((200, 200, 3), dtype=np.uint8)
-    result = normalise_crop_size(large_crop)
-    assert result.shape == large_crop.shape
 
 
 def test_deduplicate_predictions_keeps_lowest_distance():
@@ -75,9 +49,6 @@ def test_recognise_face_returns_correct_character(mock_represent):
 def test_recognise_face_raises_when_no_results(mock_represent):
     """Raises FaceRecognitionError when DeepFace cannot represent the crop."""
     from src.exceptions import FaceRecognitionError
-
     mock_represent.return_value = []
-    import pytest
-
     with pytest.raises(FaceRecognitionError):
         recognise_face(make_crop(), {"Harry Potter": [make_embedding()]}, make_bbox())
