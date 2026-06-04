@@ -49,6 +49,7 @@ def test_recognise_face_returns_correct_character(mock_represent):
 def test_recognise_face_raises_when_no_results(mock_represent):
     """Raises FaceRecognitionError when DeepFace cannot represent the crop."""
     from src.exceptions import FaceRecognitionError
+
     mock_represent.return_value = []
     with pytest.raises(FaceRecognitionError):
         recognise_face(make_crop(), {"Harry Potter": [make_embedding()]}, make_bbox())

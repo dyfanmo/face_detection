@@ -1,5 +1,3 @@
-
-
 class CropFailedError(RuntimeError):
     """Raised when a face region cannot be cropped from a frame."""
 

@@ -104,10 +104,12 @@ def test_evaluate_frame_false_positive():
 
 def test_print_summary_logs_recall(caplog):
     """Logs correct recall percentage."""
-    df = pd.DataFrame([
-        {"true_character": "Harry Potter", "character_found": True},
-        {"true_character": "Hermione Granger", "character_found": False},
-    ])
+    df = pd.DataFrame(
+        [
+            {"true_character": "Harry Potter", "character_found": True},
+            {"true_character": "Hermione Granger", "character_found": False},
+        ]
+    )
     with caplog.at_level(logging.INFO):
         print_summary(df, "data/results/test.csv")
     assert "50.0%" in caplog.text

@@ -15,8 +15,6 @@ from src.labels import parse_character_name
 logger = logging.getLogger(__name__)
 
 
-
-
 def build_reference_embeddings(references_dir: str) -> dict[str, list[list[float]]]:
     """Pre-computes Facenet512 embeddings for all reference images.
     Returns a dict mapping character name to a list of embeddings.
@@ -53,8 +51,8 @@ def recognise_face(
     Returns a FacePrediction with the best matching character, distance, and is_match flag.
     Raises FaceRecognitionError if the crop cannot be represented.
 
-    is_match=True means distance is below DISTANCE_THRESHOLD — confident identification.
-    is_match=False means a best guess was found but confidence is too low.
+    is_confident_match=True means distance is below DISTANCE_THRESHOLD — confident identification.
+    is_confident_match=False means a best guess was found but confidence is too low.
     """
     face_crop = normalise_crop_size(face_crop)
 
