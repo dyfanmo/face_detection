@@ -4,7 +4,7 @@ import os
 from collections import defaultdict
 
 from src.config import REFERENCE_LABELS, REFERENCES_DIR, VIDEO_PATH, configure_environment, setup_logging
-from src.exceptions import FrameExtractionError, NoFacesDetectedError
+from src.exceptions import CropFailedError, FrameExtractionError, NoFacesDetectedError
 from src.faces import extract_dominant_face_crop
 from src.labels import load_labels
 from src.video import VideoReader
@@ -28,7 +28,7 @@ def extract_references(video_path: str, labels_path: str, output_dir: str) -> No
             try:
                 frame_image = video.extract_frame(frame_number)
                 crop_image = extract_dominant_face_crop(frame_image)
-            except (FrameExtractionError, NoFacesDetectedError) as e:
+            except (FrameExtractionError, NoFacesDetectedError, CropFailedError) as e:
                 logger.warning(f"{character} frame {frame_number} — {e}, skipping")
                 continue
 

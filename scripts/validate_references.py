@@ -3,9 +3,9 @@ import logging
 import os
 
 from src.config import REFERENCES_DIR, configure_environment, setup_logging
-from src.exceptions import ImageLoadError, NoFacesDetectedError
+from src.exceptions import CropFailedError, ImageLoadError, NoFacesDetectedError
 from src.faces import extract_dominant_face_crop
-from src.recognise import parse_character_name
+from src.labels import parse_character_name
 from src.visualisation import load_image
 
 logger = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ def validate_references(references_dir: str) -> None:
             reference_image = load_image(os.path.join(references_dir, filename))
             extract_dominant_face_crop(reference_image)
             logger.info(f"PASS  {character} — face detected successfully")
-        except (ImageLoadError, NoFacesDetectedError) as e:
+        except (ImageLoadError, NoFacesDetectedError, CropFailedError) as e:
             logger.warning(f"FAIL  {character} — {e}")
             all_valid = False
 

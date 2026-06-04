@@ -4,8 +4,8 @@ import os
 import cv2
 import numpy as np
 
+from src.data_models import FaceBBox, FacePrediction
 from src.exceptions import ImageLoadError
-from src.models import FaceBBox, FacePrediction
 
 logger = logging.getLogger(__name__)
 

@@ -2,14 +2,14 @@ import logging
 
 import pandas as pd
 
-from src.models import EvaluationResult, FacePrediction
+from src.data_models import EvaluationResult, FacePrediction
 
 logger = logging.getLogger(__name__)
 
 
 def is_missed_prediction(row: EvaluationResult) -> bool:
     """Returns True if the result row is a missed ground truth prediction."""
-    return bool(row.true_character) and not row.found
+    return bool(row.true_character) and not row.character_found
 
 
 def is_false_positive(row: EvaluationResult) -> bool:
@@ -40,10 +40,10 @@ def evaluate_frame(
 
     for expected_character in expected_characters:
         matching_prediction = find_matching_prediction(expected_character, predicted_characters)
-        is_match = expected_character in found_character_names
-        frame_results.append(build_result_row(frame_number, expected_character, matching_prediction, is_match))
+        character_found = expected_character in found_character_names
+        frame_results.append(build_result_row(frame_number, expected_character, matching_prediction, character_found))
 
-        status = "✓" if is_match else "✗"
+        status = "✓" if character_found else "✗"
         distance_str = f"distance: {matching_prediction.distance}" if matching_prediction else "no prediction"
         logger.info(f"  {status} {expected_character} — {distance_str}")
 
@@ -59,7 +59,7 @@ def build_result_row(
     frame_number: int,
     expected_character: str | None,
     prediction: FacePrediction | None,
-    is_match: bool,
+    character_found: bool,
 ) -> EvaluationResult:
     """Builds an EvaluationResult for a single expected character or false positive."""
     bbox = prediction.bbox if prediction else None
@@ -68,8 +68,8 @@ def build_result_row(
         true_character=expected_character,
         predicted_character=prediction.character if prediction else None,
         distance=prediction.distance if prediction else None,
-        match=prediction.is_match if prediction else False,
-        found=is_match,
+        is_confident_match=prediction.is_confident_match if prediction else False,
+        character_found=character_found,
         bbox_x=bbox.x if bbox else None,
         bbox_y=bbox.y if bbox else None,
         bbox_w=bbox.w if bbox else None,
@@ -83,7 +83,7 @@ def print_summary(evaluation_results_df: pd.DataFrame, output_path: str) -> None
         logger.warning("No frames were evaluated — check that the video path is correct.")
         return
 
-    correctly_identified = evaluation_results_df["found"].sum()
+    correctly_identified = evaluation_results_df["character_found"].sum()
     total_expected = evaluation_results_df["true_character"].notna().sum()
     false_positive_count = evaluation_results_df["true_character"].isna().sum()
 

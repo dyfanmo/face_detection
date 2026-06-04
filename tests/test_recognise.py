@@ -3,8 +3,9 @@ from unittest.mock import patch
 import numpy as np
 
 from src.config import FACENET_INPUT_SIZE
-from src.models import FaceBBox, FacePrediction
-from src.recognise import deduplicate_predictions, normalise_crop_size, parse_character_name, recognise_face
+from src.data_models import FaceBBox, FacePrediction
+from src.labels import parse_character_name
+from src.recognise import deduplicate_predictions, normalise_crop_size, recognise_face
 
 
 def make_crop() -> np.ndarray:
@@ -50,9 +51,9 @@ def test_deduplicate_predictions_keeps_lowest_distance():
     """Keeps only the best (lowest distance) prediction per character."""
     bbox = make_bbox()
     predictions = [
-        FacePrediction(character="Harry Potter", distance=0.3, is_match=True, bbox=bbox),
-        FacePrediction(character="Harry Potter", distance=0.2, is_match=True, bbox=bbox),
-        FacePrediction(character="Hermione Granger", distance=0.15, is_match=True, bbox=bbox),
+        FacePrediction(character="Harry Potter", distance=0.3, is_confident_match=True, bbox=bbox),
+        FacePrediction(character="Harry Potter", distance=0.2, is_confident_match=True, bbox=bbox),
+        FacePrediction(character="Hermione Granger", distance=0.15, is_confident_match=True, bbox=bbox),
     ]
     result = deduplicate_predictions(predictions)
     assert len(result) == 2
@@ -67,7 +68,7 @@ def test_recognise_face_returns_correct_character(mock_represent):
     mock_represent.return_value = [{"embedding": embedding}]
     result = recognise_face(make_crop(), {"Harry Potter": [embedding]}, make_bbox())
     assert result.character == "Harry Potter"
-    assert result.is_match
+    assert result.is_confident_match
 
 
 @patch("src.recognise.DeepFace.represent")

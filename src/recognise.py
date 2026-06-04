@@ -8,17 +8,12 @@ from deepface import DeepFace
 from scipy.spatial.distance import cosine
 
 from src.config import DISTANCE_THRESHOLD, FACENET_INPUT_SIZE, RECOGNITION_MODEL
+from src.data_models import FaceBBox, FacePrediction
 from src.exceptions import FaceRecognitionError, ReferenceLoadError
-from src.models import FaceBBox, FacePrediction
+from src.labels import parse_character_name
 
 logger = logging.getLogger(__name__)
 
-
-def parse_character_name(filename: str) -> str:
-    """Strips the index suffix from a reference filename to get the character name.
-    e.g. 'Harry Potter_9.jpg' -> 'Harry Potter'"""
-    filename_without_extension = os.path.splitext(os.path.basename(filename))[0]
-    return "_".join(filename_without_extension.split("_")[:-1])
 
 
 def normalise_crop_size(crop: np.ndarray) -> np.ndarray:
@@ -102,7 +97,7 @@ def recognise_face(
     return FacePrediction(
         character=best_character,
         distance=round(float(best_distance), 4),
-        is_match=best_distance < DISTANCE_THRESHOLD,
+        is_confident_match=best_distance < DISTANCE_THRESHOLD,
         bbox=bbox,
     )
 

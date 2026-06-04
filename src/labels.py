@@ -1,8 +1,16 @@
 import logging
+import os
 
 import pandas as pd
 
 logger = logging.getLogger(__name__)
+
+
+def parse_character_name(filename: str) -> str:
+    """Strips the index suffix from a reference filename to get the character name.
+    e.g. 'Harry Potter_9.jpg' -> 'Harry Potter'"""
+    filename_without_extension = os.path.splitext(os.path.basename(filename))[0]
+    return "_".join(filename_without_extension.split("_")[:-1])
 
 
 def load_labels(csv_path: str) -> pd.DataFrame:

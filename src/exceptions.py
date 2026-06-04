@@ -1,4 +1,3 @@
-"""Custom exceptions for the face detection and recognition pipeline."""
 
 
 class CropFailedError(RuntimeError):

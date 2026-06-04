@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import numpy as np
 
-from src.models import FaceBBox, FacePrediction, FrameAnalysis
+from src.data_models import FaceBBox, FacePrediction, FrameAnalysis
 from src.pipeline import identify_faces
 
 
@@ -15,7 +15,7 @@ def make_face_bbox() -> FaceBBox:
 
 
 def make_prediction(character: str = "Harry Potter", distance: float = 0.1) -> FacePrediction:
-    return FacePrediction(character=character, distance=distance, is_match=True, bbox=make_face_bbox())
+    return FacePrediction(character=character, distance=distance, is_confident_match=True, bbox=make_face_bbox())
 
 
 @patch("src.pipeline.recognise_face")
@@ -47,14 +47,16 @@ def test_identify_faces_returns_frame_analysis(mock_detect, mock_filter, mock_cr
 @patch("src.pipeline.filter_faces")
 @patch("src.pipeline.detect_faces")
 def test_identify_faces_excludes_unconfident_predictions(mock_detect, mock_filter, mock_crop, mock_recognise):
-    """Excludes predictions where is_match is False."""
+    """Excludes predictions where is_confident_match is False."""
     face_bbox = make_face_bbox()
     crop = np.zeros((100, 100, 3), dtype=np.uint8)
 
     mock_detect.return_value = [face_bbox]
     mock_filter.return_value = [face_bbox]
     mock_crop.return_value = crop
-    mock_recognise.return_value = FacePrediction(character="Harry Potter", distance=0.5, is_match=False, bbox=face_bbox)
+    mock_recognise.return_value = FacePrediction(
+        character="Harry Potter", distance=0.5, is_confident_match=False, bbox=face_bbox
+    )
 
     result = identify_faces(make_frame(), {})
     assert result.predicted_characters == []

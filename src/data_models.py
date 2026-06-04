@@ -22,7 +22,7 @@ class FacePrediction:
 
     character: str
     distance: float
-    is_match: bool
+    is_confident_match: bool
     bbox: FaceBBox
 
 
@@ -44,8 +44,8 @@ class EvaluationResult:
     true_character: str | None
     predicted_character: str | None
     distance: float | None
-    match: bool
-    found: bool
+    is_confident_match: bool
+    character_found: bool
     bbox_x: int | None
     bbox_y: int | None
     bbox_w: int | None

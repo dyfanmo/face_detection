@@ -2,9 +2,9 @@ import numpy as np
 import pytest
 
 from src.config import MIN_FACE_SIZE
+from src.data_models import FaceBBox
 from src.exceptions import CropFailedError
 from src.faces import crop_face, filter_faces, get_largest_face, is_face_large_enough
-from src.models import FaceBBox
 
 
 def make_frame() -> np.ndarray:

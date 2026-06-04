@@ -13,7 +13,7 @@ from src.config import (
     configure_environment,
     setup_logging,
 )
-from src.models import FacePrediction
+from src.data_models import FacePrediction
 from src.pipeline import identify_faces
 from src.recognise import build_reference_embeddings
 from src.video import VideoReader

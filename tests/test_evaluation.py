@@ -2,6 +2,7 @@ import logging
 
 import pandas as pd
 
+from src.data_models import EvaluationResult, FaceBBox, FacePrediction
 from src.evaluation import (
     build_result_row,
     evaluate_frame,
@@ -10,7 +11,6 @@ from src.evaluation import (
     is_missed_prediction,
     print_summary,
 )
-from src.models import EvaluationResult, FaceBBox, FacePrediction
 
 
 def make_bbox() -> FaceBBox:
@@ -18,7 +18,7 @@ def make_bbox() -> FaceBBox:
 
 
 def make_prediction(character: str, distance: float = 0.1) -> FacePrediction:
-    return FacePrediction(character=character, distance=distance, is_match=True, bbox=make_bbox())
+    return FacePrediction(character=character, distance=distance, is_confident_match=True, bbox=make_bbox())
 
 
 def make_result(true_character: str | None = "Harry Potter", found: bool = True) -> EvaluationResult:
@@ -27,8 +27,8 @@ def make_result(true_character: str | None = "Harry Potter", found: bool = True)
         true_character=true_character,
         predicted_character="Harry Potter" if found else None,
         distance=0.1 if found else None,
-        match=found,
-        found=found,
+        is_confident_match=found,
+        character_found=found,
         bbox_x=10,
         bbox_y=10,
         bbox_w=50,
@@ -67,7 +67,7 @@ def test_build_result_row_correct_prediction():
     assert row.true_character == "Harry Potter"
     assert row.predicted_character == "Harry Potter"
     assert row.distance == 0.15
-    assert row.found is True
+    assert row.character_found is True
     assert row.bbox_x == 10
 
 
@@ -76,22 +76,22 @@ def test_build_result_row_missed_prediction():
     row = build_result_row(100, "Harry Potter", None, False)
     assert row.predicted_character is None
     assert row.distance is None
-    assert row.found is False
+    assert row.character_found is False
     assert row.bbox_x is None
 
 
 def test_evaluate_frame_correct_match():
-    """Returns found=True when predicted character matches expected."""
+    """Returns character_found=True when predicted character matches expected."""
     results = evaluate_frame(100, ["Harry Potter"], [make_prediction("Harry Potter")])
     assert len(results) == 1
-    assert results[0].found is True
+    assert results[0].character_found is True
 
 
 def test_evaluate_frame_missed_prediction():
-    """Returns found=False when expected character is not in predictions."""
+    """Returns character_found=False when expected character is not in predictions."""
     results = evaluate_frame(100, ["Harry Potter"], [])
     assert len(results) == 1
-    assert results[0].found is False
+    assert results[0].character_found is False
 
 
 def test_evaluate_frame_false_positive():
@@ -104,12 +104,10 @@ def test_evaluate_frame_false_positive():
 
 def test_print_summary_logs_recall(caplog):
     """Logs correct recall percentage."""
-    df = pd.DataFrame(
-        [
-            {"true_character": "Harry Potter", "found": True},
-            {"true_character": "Hermione Granger", "found": False},
-        ]
-    )
+    df = pd.DataFrame([
+        {"true_character": "Harry Potter", "character_found": True},
+        {"true_character": "Hermione Granger", "character_found": False},
+    ])
     with caplog.at_level(logging.INFO):
         print_summary(df, "data/results/test.csv")
     assert "50.0%" in caplog.text

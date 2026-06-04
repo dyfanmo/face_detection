@@ -4,8 +4,8 @@ import numpy as np
 from deepface import DeepFace
 
 from src.config import DETECTOR, MIN_DETECTION_CONFIDENCE, MIN_FACE_SIZE, PADDING
+from src.data_models import FaceBBox
 from src.exceptions import CropFailedError, NoFacesDetectedError
-from src.models import FaceBBox
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +70,8 @@ def is_face_large_enough(face: FaceBBox) -> bool:
 
 def extract_dominant_face_crop(frame_image: np.ndarray) -> np.ndarray:
     """Detects faces, selects the largest, and returns a cropped numpy array.
-    Raises NoFacesDetectedError if no faces are detected or the crop fails."""
+    Raises NoFacesDetectedError if no faces are detected.
+    Raises CropFailedError if the face region cannot be cropped."""
     detected_faces = detect_faces(frame_image)
 
     if not detected_faces:
@@ -81,7 +82,4 @@ def extract_dominant_face_crop(frame_image: np.ndarray) -> np.ndarray:
     if largest_face is None:
         raise NoFacesDetectedError("could not determine largest face")
 
-    try:
-        return crop_face(frame_image, largest_face)
-    except CropFailedError as e:
-        raise NoFacesDetectedError(f"could not crop face region: {e}") from e
+    return crop_face(frame_image, largest_face)

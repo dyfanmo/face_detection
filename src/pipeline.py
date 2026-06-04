@@ -2,9 +2,9 @@ import logging
 
 import numpy as np
 
+from src.data_models import FaceBBox, FacePrediction, FrameAnalysis
 from src.exceptions import CropFailedError, FaceRecognitionError
 from src.faces import crop_face, detect_faces, filter_faces
-from src.models import FaceBBox, FacePrediction, FrameAnalysis
 from src.recognise import deduplicate_predictions, recognise_face
 
 logger = logging.getLogger(__name__)
@@ -32,7 +32,7 @@ def identify_faces(
             face_detections.append((crop, face_bbox, None))
 
     confident_predictions = [
-        prediction for _, _, prediction in face_detections if prediction is not None and prediction.is_match
+        prediction for _, _, prediction in face_detections if prediction is not None and prediction.is_confident_match
     ]
 
     return FrameAnalysis(

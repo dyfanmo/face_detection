@@ -4,8 +4,8 @@ import tempfile
 import numpy as np
 import pytest
 
+from src.data_models import FaceBBox
 from src.exceptions import ImageLoadError
-from src.models import FaceBBox
 from src.visualisation import draw_label, load_image, save_image
 
 
