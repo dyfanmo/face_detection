@@ -152,6 +152,8 @@ export TF_CPP_MIN_LOG_LEVEL=3
 export TF_ENABLE_ONEDNN_OPTS=0
 ```
 
+**Apple Silicon (M1/M2/M3) performance** — results may differ slightly from Intel machines due to floating point precision differences between CPU architectures. TensorFlow uses different compute paths on Apple Silicon which can shift cosine distances by small amounts, occasionally causing results near the confidence threshold to flip.
+
 **H.264 stream warning** — `nimbus.mp4` contains a minor H.264 stream error that triggers an OpenCV decoder warning at certain frames. This does not affect frame extraction or evaluation results.
 
 **First run is slow** — DeepFace downloads model weights on first use. Subsequent runs use the cached models.
