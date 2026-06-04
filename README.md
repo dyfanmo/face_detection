@@ -128,6 +128,7 @@ uv run python scripts/evaluate.py --labels data/labels/multi_face_test_labels.cs
 | `--visualise DIR` | Save annotated frames to directory — false positives drawn in red |
 | `--debug` | Save only failed frames to `data/debug_frames/` with Unknown boxes for unrecognised faces |
 | `--video PATH` | Override default video path (default: `data/videos/nimbus.mp4`) |
+| `--output PATH` | Override default output path (default: derived from labels filename) |
 
 ---
 

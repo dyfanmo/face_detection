@@ -103,6 +103,7 @@ def main() -> None:
     parser.add_argument("--video", default=VIDEO_PATH, help="Path to video file")
     parser.add_argument("--labels", required=True, help="Path to test labels CSV")
     parser.add_argument("--references", default=REFERENCES_DIR, help="Path to reference images directory")
+    parser.add_argument("--output", default=None, help="Override default output path for evaluation results CSV")
     parser.add_argument("--visualise", metavar="DIR", default=None, help="Save annotated frames to this directory")
     parser.add_argument(
         "--debug", action="store_true", help="Save failed frames with Unknown boxes to data/debug_frames/"
